@@ -2,8 +2,8 @@ bl_info = {
     "name": "Select border edges",
     "author": "dividi",
     "version": (1, 0),
-    "blender": (2, 80, 0),
-    "location": "EditMode>Select",
+    "blender": (2, 82, 0),
+    "location": "EditMode > Select > Selection borders",
     "description": "Select the edges delimiting a selection",
     "warning": "",
     "doc_url": "",
@@ -11,9 +11,11 @@ bl_info = {
 }
 
 
+
 import bpy
 import bmesh
 from bpy.props import BoolProperty
+
 
 
 # select the specified edges
@@ -72,13 +74,7 @@ def get_selected_faces (all_faces):
     
     return selected_faces
 
-
-
-
-
-
-
-
+     
 
 class MESH_OT_select_selection_border(bpy.types.Operator):
     """Select the edges delimiting a selection"""
@@ -89,21 +85,21 @@ class MESH_OT_select_selection_border(bpy.types.Operator):
 
     hide_selection: BoolProperty(
         name="hide selection",
-        default=False,
+        default=True,
         description="hide the selection",
     )
 
 
     mark_seams: BoolProperty(
         name="mark seams",
-        default=False,
+        default=True,
         description="mark seams edge",
     )
 
     clear_seams: BoolProperty(
-        name="clear seams",
-        default=False,
-        description="Clear old seams in selection",
+        name="clear inner seams",
+        default=True,
+        description="Clear inner seams in selection",
     )
 
 
@@ -126,6 +122,7 @@ class MESH_OT_select_selection_border(bpy.types.Operator):
             raise TypeError("Active object is not a Mesh")
             return {'CANCELED'}
 
+        # object data
         me = ob.data
 
         if me.is_editmode:
@@ -138,7 +135,7 @@ class MESH_OT_select_selection_border(bpy.types.Operator):
             bm.from_mesh(me)
         
 
-        # selected faces
+        # selected faces (to hide them if hide flag is on)
         selected_faces = get_selected_faces(bm.faces)
             
         # all edges    
@@ -172,31 +169,16 @@ class MESH_OT_select_selection_border(bpy.types.Operator):
 
 
 
-
-
-
-
-# Registration
-
-#def add_object_button(self, context):
-#    self.layout.operator(
-#        OBJECT_OT_add_object.bl_idname,
-#        text="Add Object",
-#        icon='PLUGIN')
-
-
-
-
-
+# Function to run the operator
+def select_selection_border(self, context):
+    self.layout.operator('mesh.select_selection_border', text='Selection borders')
 
 
 
 def register():
     bpy.utils.register_class(MESH_OT_select_selection_border)
+    bpy.types.VIEW3D_MT_select_edit_mesh.append(select_selection_border)
 
 def unregister():
     bpy.utils.unregister_class(MESH_OT_select_selection_border)
-
-
-if __name__ == "__main__":
-    register()
+    bpy.types.VIEW3D_MT_select_edit_mesh.remove(select_selection_border)
